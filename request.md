@@ -88,7 +88,7 @@ Note: regular users can search only within their organizations using this endpoi
 
 ---
 
-### GET /folders/org/:orgId
+### GET /folders/org/:orgIdu
 
 No request body (GET)
 

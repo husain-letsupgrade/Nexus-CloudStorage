@@ -4,9 +4,13 @@ import {
 	listFoldersByOrg,
 	findFolderById,
 } from "../../models/folder.js"
-import { getDb } from "../../db/db.js"
+import { getDb } from "../../db/mongo.js"
 import { ObjectId } from "mongodb"
 import { uuid } from "uuidv4"
+import {
+	deleteFile as s3DeleteFile,
+	renameFile,
+} from "../../services/upload.js"
 
 const create = async (req, res) => {
 	const { name, parentId } = req.body
@@ -214,9 +218,55 @@ const updateFolder = async (req, res) => {
 		return res
 			.status(400)
 			.json(validation([{ field: "body", message: "Nothing to update" }]))
-	await db.collection("folders").updateOne({ folderId }, { $set: update })
-	const updated = await db.collection("folders").findOne({ folderId })
-	res.status(200).json(success("Folder updated", { folder: updated }, 200))
+
+	try {
+		// If name is changing, we need to update all file paths in S3 that start with this folder's path
+		if (name) {
+			// Get all files in this folder and subfolders
+			const files = await db
+				.collection("files")
+				.find({
+					$or: [
+						{ parentId: folder.folderId },
+						{ path: new RegExp(`^${folder.folderId}/`) },
+					],
+				})
+				.toArray()
+
+			// Update each file's path in S3
+			for (const file of files) {
+				if (!file.path) continue
+
+				const pathParts = file.path.split("/")
+				const newPath = pathParts
+					.map(part => (part === folder.name ? name : part))
+					.join("/")
+
+				if (newPath !== file.path) {
+					const s3Result = await renameFile(file.path, newPath)
+					await db.collection("files").updateOne(
+						{ _id: file._id },
+						{
+							$set: {
+								path: s3Result.key,
+								location: s3Result.location,
+							},
+						}
+					)
+				}
+			}
+		}
+
+		await db.collection("folders").updateOne({ folderId }, { $set: update })
+		const updated = await db.collection("folders").findOne({ folderId })
+		res.status(200).json(
+			success("Folder updated", { folder: updated }, 200)
+		)
+	} catch (e) {
+		res.status(500).json(
+			error("Update failed", { message: e.message }, 500)
+		)
+	}
 }
 
 const deleteFolder = async (req, res) => {
@@ -252,16 +302,20 @@ const deleteFolder = async (req, res) => {
 		)
 	}
 
-	// delete files physically and from db; files store parentId as folderId string
+	// delete files from S3 and db; files store parentId as folderId string
 	const files = await db
 		.collection("files")
 		.find({ parentId: folder.folderId })
 		.toArray()
 	for (const f of files) {
-		// unlink file from disk if present
 		try {
-			import("fs").then(fs => fs.unlinkSync(f.path))
-		} catch (e) {}
+			// Delete from S3 if path exists
+			if (f.path) {
+				await s3DeleteFile(f.path)
+			}
+		} catch (e) {
+			console.error(`Error deleting file ${f._id} from S3:`, e)
+		}
 		await db.collection("files").deleteOne({ _id: f._id })
 	}
 

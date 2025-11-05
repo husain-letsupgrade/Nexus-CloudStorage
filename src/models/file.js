@@ -1,4 +1,4 @@
-import { getDb } from "../db/db.js"
+import { getDb } from "../db/mongo.js"
 import { ObjectId } from "mongodb"
 
 const filesCollection = () => getDb().collection("files")

@@ -1,6 +1,6 @@
 import { success, error, validation } from "../../configs/response.js"
 import { createOrg, listOrgs, findOrgById } from "../../models/organization.js"
-import { getDb } from "../../db/db.js"
+import { getDb } from "../../db/mongo.js"
 import { ObjectId } from "mongodb"
 
 const create = async (req, res) => {

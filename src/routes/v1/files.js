@@ -1,6 +1,5 @@
 import { Router } from "express"
 import multer from "multer"
-import path from "path"
 import { authenticate } from "../../middlewares/auth.js"
 import {
 	uploadFile,
@@ -12,22 +11,17 @@ import {
 } from "../../controllers/v1/files.js"
 
 const router = Router()
-const uploadDir = path.resolve(process.cwd(), "upload")
-const storage = multer.diskStorage({
-	destination: function (req, file, cb) {
-		cb(null, uploadDir)
-	},
-	filename: function (req, file, cb) {
-		cb(null, `${Date.now()}-${file.originalname}`)
-	},
-})
 
-const upload = multer({ storage, limits: { fileSize: 20 * 1024 * 1024 } }) // 20 MB
+// Use memory storage for S3 upload
+const upload = multer({
+	storage: multer.memoryStorage(),
+	limits: { fileSize: 20 * 1024 * 1024 }, // 20 MB
+})
 
 router.post(
 	"/org/:orgId/upload",
 	authenticate,
-	upload.single("file"),
+	upload.array("files", 10), // Allow up to 10 files at once
 	uploadFile
 )
 router.get("/search", authenticate, search)
