@@ -1,4 +1,5 @@
 import "dotenv/config"
+import fs from "fs"
 import { initializeApp, cert } from "firebase-admin/app"
 import { initializeApp as initApp } from "firebase/app"
 import { getAuth } from "firebase-admin/auth"
@@ -8,7 +9,36 @@ import {
 	sendPasswordResetEmail,
 } from "firebase/auth"
 
-let creds = JSON.parse(process.env.FIREBASE_CREDENTIALS)
+// FIREBASE_CREDENTIALS can be either a JSON string (stringified service account)
+// or a path to a JSON file on disk. See .env.example for recommended usage.
+let creds = null
+const raw = process.env.FIREBASE_CREDENTIALS
+if (!raw) {
+	console.error(
+		"FATAL: FIREBASE_CREDENTIALS is not set. Please add your service account JSON (stringified) or a path to the JSON file to the FIREBASE_CREDENTIALS env var."
+	)
+	process.exit(1)
+}
+
+try {
+	if (raw.trim().startsWith("{")) {
+		creds = JSON.parse(raw)
+	} else if (fs.existsSync(raw)) {
+		const contents = fs.readFileSync(raw, "utf8")
+		creds = JSON.parse(contents)
+	} else {
+		throw new Error(
+			"FIREBASE_CREDENTIALS is neither valid JSON nor a path to a file"
+		)
+	}
+} catch (err) {
+	console.error("FATAL: Unable to parse FIREBASE_CREDENTIALS:", err.message)
+	console.error(
+		"Make sure the value is a valid JSON string (keys/strings quoted) or a filesystem path to the service account JSON. See .env.example for format."
+	)
+	process.exit(1)
+}
+
 creds.private_key = creds.private_key
 	? creds.private_key.replace(/\\n/gm, "\n")
 	: undefined
@@ -28,4 +58,24 @@ const auth = getAuth(app)
 const app2 = initApp(firebaseConfigclient)
 const clientAuth = getAuth2(app2)
 
-export { auth, clientAuth, signInWithEmailAndPassword, sendPasswordResetEmail }
+// Helper to create a Firebase Authentication user (wrapper around admin.auth())
+const createFirebaseUser = async ({
+	email,
+	password,
+	displayName,
+	phoneNumber,
+}) => {
+	return auth.createUser({
+		email,
+		password,
+		displayName,
+	})
+}
+
+export {
+	auth,
+	clientAuth,
+	signInWithEmailAndPassword,
+	sendPasswordResetEmail,
+	createFirebaseUser,
+}

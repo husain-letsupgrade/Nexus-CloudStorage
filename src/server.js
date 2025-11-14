@@ -22,6 +22,7 @@ app.use(cors())
 // Built-In Middleware
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
+
 if (cluster.isPrimary) {
 	console.log(`Number of CPUs is ${cpus().length}`)
 	console.log(`Master ${process.pid} is running`)
