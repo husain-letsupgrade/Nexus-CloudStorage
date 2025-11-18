@@ -1,6 +1,11 @@
 import { filescoll } from "../db/mongo.js"
 import { ObjectId } from "mongodb"
 import { general, timestamp } from "./general.js"
+import {
+	createFileMetaHelper,
+	findFilesHelper,
+	findFileByIdHelper,
+} from "../helpers/files.js"
 
 const filesCollection = async () => await filescoll()
 
@@ -21,8 +26,7 @@ const createFileMeta = async (payload, uid) => {
 const findFiles = async query => (await filesCollection()).find(query).toArray()
 
 const findFileById = async id => {
-	const _id = typeof id === "string" ? new ObjectId(id) : id
-	return (await filesCollection()).findOne({ _id })
+	return findFileByIdHelper(id)
 }
 
 export { createFileMeta, findFiles, findFileById }

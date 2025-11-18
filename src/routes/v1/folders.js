@@ -11,11 +11,14 @@ import {
 
 const router = Router()
 
+// Folder CRUD
 router.post("/org/:orgId", authenticate, create)
 router.get("/org/:orgId", authenticate, listByOrg)
-router.get("/root", authenticate, root)
-router.get("/:folderId/contents", authenticate, getFolderContents)
 router.patch("/:folderId", authenticate, updateFolder)
 router.delete("/:folderId", authenticate, deleteFolder)
+
+// Folder contents
+router.get("/root", authenticate, root)
+router.get("/:folderId/contents", authenticate, getFolderContents)
 
 export default router
