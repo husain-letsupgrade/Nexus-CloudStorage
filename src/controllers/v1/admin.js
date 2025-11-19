@@ -17,6 +17,8 @@ import {
 
 // ORGS
 
+
+//try to use a .then 
 const listOrgsAdmin = async (req, res) => {
 	try {
 		const db = getDb()
@@ -46,6 +48,8 @@ const createOrgAdmin = async (req, res) => {
 		})
 }
 
+
+//helper pls
 const listUsersAdmin = async (req, res) => {
 	try {
 		const db = getDb()
@@ -197,7 +201,7 @@ const removeUserFromOrgAdmin = async (req, res) => {
 
 const searchFilesInOrgAdmin = async (req, res) => {
 	const { orgId } = req.params
-	const { q } = req.query
+	const { q } = req.query //change the variable name for the q
 
 	searchFilesInOrgHelper(orgId, q)
 		.then(result => {
@@ -213,7 +217,8 @@ const searchFilesInOrgAdmin = async (req, res) => {
 // SEARCH USERS IN ORG
 
 const searchUsersInOrg = async (req, res) => {
-	const { orgId, q } = req.query
+	const { orgId, q } = req.query //change the variable name for the q
+	//org should be params not query
 
 	searchUsersInOrgHelper(orgId, q)
 		.then(result => {

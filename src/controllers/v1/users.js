@@ -2,9 +2,10 @@ import { success, error, validation } from "../../configs/response.js"
 import { getDb } from "../../db/mongo.js"
 import { ObjectId } from "mongodb"
 
+///rewrite using a helper function
 const getUsersByOrg = async (req, res) => {
 	const { orgId } = req.params
-	const db = getDb()
+	const db = getDb() // why initialise db here
 	let orgObjectId
 	try {
 		orgObjectId = new ObjectId(orgId)

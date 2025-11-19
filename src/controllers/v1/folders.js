@@ -16,13 +16,15 @@ const create = async (req, res) => {
 	const { name, parentId } = req.body
 	const { orgId } = req.params
 	const user = req.user
-
+//STARAT : not needed
 	if (!name || !orgId)
 		return res
 			.status(422)
 			.json(validation([{ field: "name/orgId", message: "Required" }]))
-
+// END : not needed
 	try {
+
+		//dont call the db if not needed
 		const db = getDb()
 		const folderId = uuidv4()
 		const folder = {
@@ -48,6 +50,8 @@ const create = async (req, res) => {
 const listByOrg = async (req, res) => {
 	const { orgId } = req.params
 	try {
+
+		// why initialise folders 
 		const folders = await listFoldersByOrgHelper(new ObjectId(orgId))
 		res.status(200).json(success("Folders listed", { folders }, 200))
 	} catch (e) {
@@ -60,11 +64,13 @@ const listByOrg = async (req, res) => {
 // Get root folder contents
 const root = async (req, res) => {
 	const { orgId } = req.query
+
+	//STARAT : not needed
 	if (!orgId)
 		return res
 			.status(422)
 			.json(validation([{ field: "orgId", message: "Required" }]))
-
+// END : not needed
 	try {
 		const db = getDb()
 		const orgIdObj = new ObjectId(orgId)
@@ -81,7 +87,7 @@ const root = async (req, res) => {
 const getFolderContents = async (req, res) => {
 	const { folderId } = req.params
 	try {
-		const db = getDb()
+		const db = getDb() // why initialise db here
 		const contents = await getFolderContentsHelper(folderId, db)
 		res.status(200).json(success("Folder contents", contents, 200))
 	} catch (e) {
@@ -96,6 +102,7 @@ const updateFolder = async (req, res) => {
 	const { folderId } = req.params
 	const { name, parentId } = req.body
 	try {
+		// why initialise db here
 		const db = getDb()
 		const updated = await updateFolderHelper(
 			folderId,
@@ -116,10 +123,12 @@ const updateFolder = async (req, res) => {
 const deleteFolder = async (req, res) => {
 	const { folderId } = req.params
 	try {
+		// why initialise db here
 		const db = getDb()
 		await deleteFolderHelper(folderId, db)
 		res.status(200).json(success("Folder deleted", null, 200))
 	} catch (e) {
+		//better error handling variable name
 		res.status(500).json(
 			error("Error deleting folder", { message: e.message }, 500)
 		)

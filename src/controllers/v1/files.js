@@ -13,11 +13,11 @@ import {
 
 const uploadFile = async (req, res) => {
 	const { description, tags, folderId } = req.body
-	const { orgId: organizationId } = req.params
+	const { orgId: organizationId } = req.params // whats the need for the variable change
 	const user = req.user
 
 	uploadFileHelper(
-		req.files,
+		req.files, //dont do this, initialise files first
 		description,
 		tags,
 		organizationId,
@@ -41,7 +41,7 @@ const uploadFile = async (req, res) => {
 }
 
 const search = async (req, res) => {
-	const { q } = req.query
+	const { q } = req.query //change the variable name for the q
 	const user = req.user
 
 	searchFileHelper(q, user)

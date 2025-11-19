@@ -8,13 +8,13 @@ const list = async (req, res) => {
 
 	let userObjectId
 	try {
-		userObjectId = new ObjectId(user.id)
+		userObjectId = new ObjectId(user.id) // why is this being used.. they are better ways to do this. do not do it this way
 	} catch {
 		return res
 			.status(422)
 			.json(validation([{ field: "userId", message: "Invalid user id" }]))
 	}
-
+	// why initialise db here
 	const db = getDb()
 	const orgs = await db
 		.collection("organizations")

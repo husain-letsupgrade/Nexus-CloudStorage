@@ -5,6 +5,8 @@ import { registerHelper, loginHelper, checkHelper } from "../../helpers/auth.js"
 const register = async (req, res) => {
 	const { email, password, name, mobile } = req.body
 
+
+	
 	try {
 		const result = await registerHelper(email, password, name, mobile)
 		return res.status(201).json(success("User created", result.data, 201))
